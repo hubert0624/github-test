@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<meta name="description" content="民眾藥安心・藥師藥關心：25章、11,370則可搜尋用藥照護問答。">
+<meta property="og:title" content="民眾藥安心・藥師藥關心">
+<meta property="og:description" content="25章、11,370則可搜尋用藥照護問答">
+<title>民眾藥安心・藥師藥關心</title>
+<link rel="stylesheet" href="style.css">
+<script src="app.js" defer></script>
+</head>
+<body>
+<div id="app" class="app-shell">
+  <aside id="sidebar" class="sidebar" aria-label="網站目錄">
+    <div class="brand-row">
+      <a class="brand" href="./" data-link="home" aria-label="回首頁">
+        <span class="brand-mark">藥</span>
+        <span><strong>民眾藥安心</strong><small>藥師藥關心</small></span>
+      </a>
+      <button id="closeNav" class="icon-btn mobile-only" aria-label="關閉目錄">×</button>
+    </div>
+    <form id="searchForm" class="search-box" role="search">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21 21-4.3-4.3m2.3-5.2A7.5 7.5 0 1 1 4 11.5a7.5 7.5 0 0 1 15 0Z"/></svg>
+      <input id="globalSearch" type="search" placeholder="搜尋藥名、症狀或問題" autocomplete="off">
+      <kbd>⌘K</kbd>
+    </form>
+    <nav class="side-nav">
+      <a href="./" data-link="home" class="nav-item"><span class="nav-icon">⌂</span>首頁</a>
+      <div class="nav-label">用藥照護章節</div>
+      <div id="chapterNav" class="chapter-nav"></div>
+      <div class="nav-label">網站資訊</div>
+      <a href="?page=about" data-link="about" class="nav-item"><span class="nav-icon">ⓘ</span>關於本網站</a>
+      <a href="?page=notice" data-link="notice" class="nav-item"><span class="nav-icon">!</span>用藥安全聲明</a>
+    </nav>
+    <div class="sidebar-footer">
+      <button id="fontBtn" class="font-btn">A⁺ 大字模式</button>
+      <span>共 25 章・11,370 則問答</span>
+    </div>
+  </aside>
+  <div id="overlay" class="overlay"></div>
+  <main class="main-panel">
+    <header class="topbar">
+      <button id="openNav" class="icon-btn mobile-only" aria-label="開啟目錄">☰</button>
+      <div id="breadcrumb" class="breadcrumb"></div>
+      <div class="top-actions">
+        <button id="shareBtn" class="plain-btn">分享本頁</button>
+      </div>
+    </header>
+    <div id="view" class="view"><div class="loading"><span></span>載入中…</div></div>
+  </main>
+</div>
+<div id="toast" class="toast" role="status">網址已複製</div>
+<noscript>本網站需要啟用 JavaScript 才能使用搜尋與章節瀏覽功能。</noscript>
+</body>
+</html>
