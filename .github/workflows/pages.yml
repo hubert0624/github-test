@@ -1,4 +1,4 @@
-name: Deploy medication website to GitHub Pages
+name: Deploy complete medication knowledge website
 
 on:
   push:
@@ -21,16 +21,22 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
       - name: Configure Pages
         uses: actions/configure-pages@v5
         with:
           enablement: true
-      - name: Upload artifact
+      - name: Download complete reviewed website
+        run: |
+          mkdir -p site
+          curl -L --fail --retry 3 "https://at.adobe.com/Xpw7KB1XtMRacAoI" -o medicine_knowledge_site.zip
+          unzip -q medicine_knowledge_site.zip -d site
+          test -f site/index.html
+          test -f site/app.js
+          test -f site/data/meta.json
+      - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: .
+          path: site
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
