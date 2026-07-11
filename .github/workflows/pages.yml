@@ -1,4 +1,4 @@
-name: Deploy complete medication knowledge website
+name: Publish complete medication knowledge base
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -15,40 +15,82 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  deploy:
+  publish:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
-      - name: Configure Pages
-        uses: actions/configure-pages@v5
+      - name: Checkout repository
+        uses: actions/checkout@v4
         with:
-          enablement: true
-      - name: Download complete reviewed website
+          fetch-depth: 0
+
+      - name: Download and validate complete website
+        shell: bash
         run: |
           set -euo pipefail
+          rm -rf _site site.zip
           mkdir -p _site
-          curl --fail --location --retry 3 --output site.zip "https://at.adobe.com/Xpw7KB1XtMRacAoI"
+          curl --fail --location --retry 4 --retry-delay 3 \
+            --output site.zip "https://at.adobe.com/Xpw7KB1XtMRacAoI"
           unzip -q site.zip -d _site
+
           if [ ! -f _site/index.html ]; then
             first_index=$(find _site -mindepth 2 -name index.html -print -quit)
-            if [ -n "$first_index" ]; then
-              inner_dir=$(dirname "$first_index")
-              cp -a "$inner_dir"/. _site/
-            fi
+            test -n "$first_index"
+            inner_dir=$(dirname "$first_index")
+            temp_dir=$(mktemp -d)
+            cp -a "$inner_dir"/. "$temp_dir"/
+            rm -rf _site
+            mv "$temp_dir" _site
           fi
+
           test -f _site/index.html
+          test -f _site/app.js
+          test -f _site/style.css
+          test -f _site/data/meta.json
+          for n in 01 02 03 04 05 06 07; do
+            test -s "_site/data/chunk${n}.b64"
+          done
           grep -q "搜尋藥名、症狀或問題" _site/index.html
-          if grep -R "canva.com" _site --exclude='*.md'; then
+          if grep -R -n "canva\.com" _site --exclude='*.md'; then
             echo "Canva link detected; refusing deployment."
             exit 1
           fi
           touch _site/.nojekyll
+
+      - name: Persist full website in repository
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp _site/index.html ./index.html
+          cp _site/style.css ./style.css
+          cp _site/app.js ./app.js
+          cp _site/404.html ./404.html
+          cp _site/.nojekyll ./.nojekyll
+          rm -rf ./data
+          cp -a _site/data ./data
+          if [ -f _site/README.md ]; then cp _site/README.md ./README.md; fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html style.css app.js 404.html .nojekyll data README.md
+          if ! git diff --cached --quiet; then
+            git commit -m "Import complete medication knowledge base [skip ci]"
+            git push origin HEAD:master || echo "Repository persistence skipped; deployment will continue."
+          fi
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: _site
+
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
