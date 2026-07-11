@@ -1,10 +1,24 @@
 <!doctype html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="utf-8">
-  <title>GitHub 連接成功</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#176b5b">
+<meta property="og:title" content="民眾藥安心・藥師藥關心">
+<meta property="og:description" content="40年社區藥局經驗整理成可搜尋的用藥照護問答">
+<meta property="og:type" content="website">
+<title>民眾藥安心・藥師藥關心</title>
+<meta name="description" content="社區藥局用藥照護問答整理，可依章節瀏覽及搜尋。">
+<link rel="stylesheet" href="style.css">
+<script src="meta.js" defer></script>
+<script src="data/ch01.js" defer></script><script src="data/ch02.js" defer></script><script src="data/ch03.js" defer></script><script src="data/ch04.js" defer></script><script src="data/ch05.js" defer></script><script src="data/ch06.js" defer></script><script src="data/ch07.js" defer></script><script src="data/ch08.js" defer></script><script src="data/ch09.js" defer></script><script src="data/ch10.js" defer></script><script src="data/ch11.js" defer></script><script src="data/ch12.js" defer></script><script src="data/ch13.js" defer></script><script src="data/ch14.js" defer></script><script src="data/ch15.js" defer></script><script src="data/ch16.js" defer></script><script src="data/ch17.js" defer></script><script src="data/ch18.js" defer></script><script src="data/ch19.js" defer></script><script src="data/ch20.js" defer></script><script src="data/ch21.js" defer></script><script src="data/ch22.js" defer></script><script src="data/ch23.js" defer></script><script src="data/ch24.js" defer></script><script src="data/ch25.js" defer></script>
+<script src="app.js" defer></script>
 </head>
 <body>
-  <h1>Hello！GitHub 連接成功！</h1>
-</body>
-</html>
+<header><div class="brand"><div class="logo">藥</div><div><h1>民眾藥安心</h1><p>藥師藥關心・社區用藥照護問答</p></div></div><button id="fontBtn" aria-label="切換大字模式">大字模式</button></header>
+<div class="warning"><strong>重要提醒：</strong>本網站是原書內容的數位整理，部分資料可能反映撰寫當時的醫療知識、藥品與法規，尚未逐題依最新指引完成醫療審查。內容僅供健康教育與經驗分享，不取代診斷、處方或個別用藥諮詢。請勿自行停藥、加減量或使用他人的藥物。</div>
+<section class="hero"><div><span class="eyebrow">40 年社區藥局經驗</span><h2>把厚重的用藥書，變成隨時可查的安心工具</h2><p>依章節瀏覽，或直接輸入症狀、藥名與問題。閱讀後若涉及個人治療決策，請再向醫師或藥師確認。</p><div class="share-row"><button id="shareBtn">分享網站</button><button id="copyBtn" class="secondary">複製網址</button></div></div><div class="stats"><b id="statQ">—</b><span>則問答</span><b id="statC">—</b><span>個章節</span></div></section>
+<section class="about"><div class="about-card"><h3>關於這本書</h3><p>本書源自長年社區藥局執業經驗，彙整民眾常見的用藥與健康問題，希望讓藥事知識更容易取得。網站保留原始問答的精神，再重新整理為可搜尋的數位形式。</p><div class="medical-note"><strong>遇到緊急症狀請直接就醫：</strong>呼吸困難、意識改變、胸痛、嚴重過敏、持續大量出血、疑似中風或藥物過量，都不應只靠網路內容判斷。</div></div></section>
+<main><div class="toolbar"><input id="search" type="search" placeholder="搜尋：例如 血壓、退燒、抗生素、眼藥水…" aria-label="搜尋內容"><select id="chapterSelect" aria-label="選擇章節"><option value="">全部章節</option></select><button id="clearBtn">清除</button></div><div id="resultInfo" class="result-info"></div><div class="layout"><nav id="chapters" aria-label="章節目錄"></nav><section id="content"><div class="loading">正在載入書籍內容…<div class="progress"><span id="loadBar"></span></div><p id="loadText">準備資料中</p></div></section></div></main>
+<footer><p>內容整理自《民眾藥安心・藥師藥關心》社區藥事照護問答。</p><p>網站版本：2026-07-11・目前收錄第 01–25 章</p></footer><div id="toast" class="share-toast">網址已複製</div>
+</body></html>
