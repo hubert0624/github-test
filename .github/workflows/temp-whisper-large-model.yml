@@ -1,0 +1,33 @@
+name: Temporary High-Accuracy Whisper Model
+
+on:
+  pull_request:
+    paths:
+      - 'temp-large-model-trigger.txt'
+
+permissions:
+  contents: read
+
+jobs:
+  download-large-model:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Download official whisper.cpp large-v3-turbo quantized model
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p large_model
+          curl -L --fail --retry 3 --retry-delay 3 \
+            -o large_model/ggml-large-v3-turbo-q5_0.bin \
+            'https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large-v3-turbo-q5_0.bin?download=true'
+          sha256sum large_model/ggml-large-v3-turbo-q5_0.bin | tee large_model/SHA256SUMS.txt
+          ls -lh large_model/ggml-large-v3-turbo-q5_0.bin
+      - name: Upload high-accuracy model artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: whisper-large-v3-turbo-q5-model
+          path: large_model
+          compression-level: 0
+          retention-days: 1
+          if-no-files-found: error
