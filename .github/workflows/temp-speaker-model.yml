@@ -1,0 +1,38 @@
+name: Temporary Speaker Embedding Model
+
+on:
+  pull_request:
+    paths:
+      - 'temp-speaker-trigger.txt'
+
+permissions:
+  contents: read
+
+jobs:
+  download-speaker-model:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Download public SpeechBrain ECAPA model
+        shell: bash
+        env:
+          HF_HUB_DISABLE_XET: '1'
+        run: |
+          set -euo pipefail
+          python -m pip install --quiet --upgrade huggingface_hub
+          python - <<'PY'
+          from huggingface_hub import snapshot_download
+          snapshot_download(
+              repo_id='speechbrain/spkrec-ecapa-voxceleb',
+              local_dir='speaker_model',
+          )
+          PY
+          find speaker_model -maxdepth 2 -type f -printf '%p %s bytes\n' | sort
+      - name: Upload speaker model artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: speechbrain-ecapa-model
+          path: speaker_model
+          compression-level: 0
+          retention-days: 1
+          if-no-files-found: error
