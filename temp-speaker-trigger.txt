@@ -1,0 +1,1 @@
+Trigger the temporary public speaker-embedding model artifact workflow.
