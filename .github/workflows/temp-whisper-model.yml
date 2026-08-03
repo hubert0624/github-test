@@ -1,0 +1,36 @@
+name: Temporary Whisper Model
+
+on:
+  push:
+    paths:
+      - '.github/workflows/temp-whisper-model.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build-model-artifact:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Download and reconstruct model
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p model/chunks
+          for suffix in aa ab ac ad ae af ag ah ai aj; do
+            curl -L --fail --retry 3 --retry-delay 2 \
+              -o "model/chunks/part-${suffix}" \
+              "https://raw.githubusercontent.com/advexplorer/whisper/main/ggml-small-q5_1.bin.part-${suffix}"
+          done
+          cat model/chunks/part-* > model/ggml-small-q5_1.bin
+          echo "ae85e4a935d7a567bd102fe55afc16bb595bdb618e11b2fc7591bc08120411bb  model/ggml-small-q5_1.bin" | sha256sum --check --strict
+          ls -lh model/ggml-small-q5_1.bin
+      - name: Upload model artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: whisper-model
+          path: model/ggml-small-q5_1.bin
+          compression-level: 0
+          retention-days: 1
+          if-no-files-found: error
