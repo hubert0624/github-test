@@ -1,4 +1,4 @@
-name: Temporary Whisper Model
+name: Temporary Whisper Toolkit
 
 on:
   push:
@@ -12,28 +12,47 @@ permissions:
   contents: read
 
 jobs:
-  build-model-artifact:
+  build-toolkit-artifact:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
       - name: Download and reconstruct model
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p model/chunks
+          mkdir -p toolkit/model/chunks
           for suffix in aa ab ac ad ae af ag ah ai aj; do
             curl -L --fail --retry 3 --retry-delay 2 \
-              -o "model/chunks/part-${suffix}" \
+              -o "toolkit/model/chunks/part-${suffix}" \
               "https://raw.githubusercontent.com/advexplorer/whisper/main/ggml-small-q5_1.bin.part-${suffix}"
           done
-          cat model/chunks/part-* > model/ggml-small-q5_1.bin
-          echo "ae85e4a935d7a567bd102fe55afc16bb595bdb618e11b2fc7591bc08120411bb  model/ggml-small-q5_1.bin" | sha256sum --check --strict
-          ls -lh model/ggml-small-q5_1.bin
-      - name: Upload model artifact
+          cat toolkit/model/chunks/part-* > toolkit/model/ggml-small-q5_1.bin
+          echo "ae85e4a935d7a567bd102fe55afc16bb595bdb618e11b2fc7591bc08120411bb  toolkit/model/ggml-small-q5_1.bin" | sha256sum --check --strict
+          rm -rf toolkit/model/chunks
+          ls -lh toolkit/model/ggml-small-q5_1.bin
+      - name: Build whisper.cpp CLI
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --depth 1 https://github.com/ggerganov/whisper.cpp.git whisper.cpp
+          cmake -S whisper.cpp -B whisper.cpp/build \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DBUILD_SHARED_LIBS=OFF \
+            -DWHISPER_BUILD_EXAMPLES=ON \
+            -DWHISPER_BUILD_TESTS=OFF \
+            -DWHISPER_BUILD_SERVER=OFF
+          cmake --build whisper.cpp/build --config Release -j 2
+          mkdir -p toolkit/bin
+          cp whisper.cpp/build/bin/whisper-cli toolkit/bin/whisper-cli
+          chmod +x toolkit/bin/whisper-cli
+          toolkit/bin/whisper-cli --help > toolkit/whisper-cli-help.txt 2>&1 || true
+          file toolkit/bin/whisper-cli
+          ldd toolkit/bin/whisper-cli || true
+      - name: Upload toolkit artifact
         uses: actions/upload-artifact@v4
         with:
-          name: whisper-model
-          path: model/ggml-small-q5_1.bin
+          name: whisper-toolkit
+          path: toolkit
           compression-level: 0
           retention-days: 1
           if-no-files-found: error
