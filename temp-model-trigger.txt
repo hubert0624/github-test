@@ -1,1 +1,1 @@
-Trigger the temporary Whisper model artifact workflow.
+Trigger the temporary Whisper toolkit artifact workflow (second run).
