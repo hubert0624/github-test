@@ -1,17 +1,26 @@
-name: Publish all 32 medication knowledge chapters
+name: Deploy medication knowledge website
 
 on:
   push:
     branches: ["master"]
+    paths:
+      - "index.html"
+      - "app.js"
+      - "style.css"
+      - "404.html"
+      - "README.md"
+      - "CNAME"
+      - "data/**"
+      - ".github/workflows/pages.yml"
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
   pages: write
   id-token: write
 
 concurrency:
-  group: pages
+  group: "pages"
   cancel-in-progress: false
 
 jobs:
@@ -19,81 +28,109 @@ jobs:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
+
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Download chapters 26 to 32 update
-        shell: bash
-        run: |
-          set -euo pipefail
-          rm -rf update update.zip
-          mkdir -p update
-          curl --fail --location --retry 4 --retry-delay 3 \
-            --output update.zip "https://at.adobe.com/4aoX1g0EWYdtQcpA"
-          unzip -q update.zip -d update
-          test -f update/index.html
-          test -f update/app.js
-          test -f update/data/meta.json
-          test -s update/data/chunk08.b64
-          test -s update/data/chunk09.b64
-          cp -a update/. ./
+        uses: actions/checkout@v6
 
       - name: Validate complete website
         shell: bash
         run: |
           set -euo pipefail
-          test -f index.html
-          test -f app.js
-          test -f style.css
-          test -f data/meta.json
-          for n in 01 02 03 04 05 06 07 08 09; do
-            test -s "data/chunk${n}.b64"
-          done
-          grep -q '"num":32' data/meta.json
-          grep -q '"total":14763' data/meta.json
-          grep -q "搜尋藥名、症狀或問題" index.html
-          if grep -R -n "canva\.com" index.html app.js data --exclude='*.md'; then
-            echo "Canva link detected; refusing deployment."
-            exit 1
-          fi
-          touch .nojekyll
 
-      - name: Persist update in repository
-        shell: bash
-        run: |
-          set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add index.html app.js 404.html README.md .nojekyll data/meta.json data/chunk08.b64 data/chunk09.b64
-          if ! git diff --cached --quiet; then
-            git commit -m "Add chapters 26-32 to medication knowledge base [skip ci]"
-            git push origin HEAD:master
+          # Confirm that the required website files exist.
+          for file in index.html app.js style.css data/meta.json; do
+            if [ ! -f "$file" ]; then
+              echo "::error::Missing required file: $file"
+              exit 1
+            fi
+          done
+
+          # Confirm that all nine data chunks exist and are not empty.
+          for n in 01 02 03 04 05 06 07 08 09; do
+            file="data/chunk${n}.b64"
+            if [ ! -s "$file" ]; then
+              echo "::error::Missing or empty file: $file"
+              exit 1
+            fi
+          done
+
+          # Validate chapter numbering and the declared entry total.
+          python3 - <<'PY'
+          import json
+
+          with open("data/meta.json", encoding="utf-8") as file:
+              meta = json.load(file)
+
+          chapters = meta.get("chapters", [])
+          chapter_numbers = [chapter.get("num") for chapter in chapters]
+
+          expected_numbers = list(range(1, 33))
+          if chapter_numbers != expected_numbers:
+              raise SystemExit(
+                  f"Expected chapters 1 through 32, got: {chapter_numbers}"
+              )
+
+          calculated_total = sum(
+              int(chapter.get("count", 0)) for chapter in chapters
+          )
+          declared_total = int(meta.get("total", -1))
+
+          if declared_total != calculated_total:
+              raise SystemExit(
+                  "meta.json total mismatch: "
+                  f"declared {declared_total}, calculated {calculated_total}"
+              )
+
+          print(
+              f"Validation passed: {len(chapters)} chapters, "
+              f"{declared_total:,} entries."
+          )
+          PY
+
+          grep -q "搜尋藥名、症狀或問題" index.html
+
+          if grep -R -n --exclude="*.md" \
+            "canva\.com" index.html app.js data; then
+            echo "::error::Canva link detected; refusing deployment."
+            exit 1
           fi
 
       - name: Prepare Pages artifact
         shell: bash
         run: |
           set -euo pipefail
+
           rm -rf _site
           mkdir -p _site
-          cp index.html app.js style.css 404.html .nojekyll _site/
+
+          cp index.html app.js style.css _site/
           cp -a data _site/data
-          if [ -f README.md ]; then cp README.md _site/README.md; fi
+
+          if [ -f 404.html ]; then
+            cp 404.html _site/
+          fi
+
+          if [ -f README.md ]; then
+            cp README.md _site/
+          fi
+
+          if [ -f CNAME ]; then
+            cp CNAME _site/
+          fi
+
+          touch _site/.nojekyll
 
       - name: Configure GitHub Pages
-        uses: actions/configure-pages@v5
-        with:
-          enablement: true
+        uses: actions/configure-pages@v6
 
       - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v5
         with:
           path: _site
 
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
